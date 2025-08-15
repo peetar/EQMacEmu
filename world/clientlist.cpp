@@ -46,6 +46,7 @@ ClientList::ClientList()
 {
 	NextCLEID = 1;
 	cached_gm_count = 0;
+	cached_trader_count = 0;
 
 	m_tick = std::make_unique<EQ::Timer>(5000, true, std::bind(&ClientList::OnTick, this, std::placeholders::_1));
 }
@@ -89,7 +90,7 @@ bool ClientList::ActiveConnectionIncludingStale(uint32 account_id) {
 		if (iterator.GetData()->AccountID() == account_id) {
 			struct in_addr in;
 			in.s_addr = iterator.GetData()->GetIP();
-			LogInfo("Client with account [{}] exists on [{}]", iterator.GetData()->AccountID(), inet_ntoa(in));
+			LogInfo("Client with account [{}] exists on [{}] (active including stale)", iterator.GetData()->AccountID(), inet_ntoa(in));
 
 			return true;
 		}
@@ -109,6 +110,15 @@ bool ClientList::ActiveConnectionKickStale(uint32 account_id) {
 			CLE_Status eStatus = iterator.GetData()->Online();
 			if (eStatus > CLE_Status::CharSelect)
 			{
+				if (eStatus == CLE_Status::OfflineBazaar)
+				{
+					auto pack = new ServerPacket(ServerOP_KickPlayerAccount, sizeof(ServerKickPlayerAccount_Struct));
+					ServerKickPlayerAccount_Struct* skp = (ServerKickPlayerAccount_Struct*)pack->pBuffer;
+					skp->AccountID = account_id;
+					zoneserver_list.SendPacket(pack);
+					safe_delete(skp);
+				}
+
 				found_active = true;
 			}
 			else if (eStatus <= CLE_Status::CharSelect) {
@@ -118,7 +128,7 @@ bool ClientList::ActiveConnectionKickStale(uint32 account_id) {
 		}
 		iterator.Advance();
 	}
-	return false;
+	return found_active;
 }
 
 bool ClientList::ActiveConnection(uint32 account_id, uint32 character_id) {
@@ -185,7 +195,7 @@ bool ClientList::CheckIPLimit(uint32 iAccID, uint32 iIP, uint16 admin, ClientLis
 			(RuleI(World, ExemptMaxClientsStatus) < 0))) {
 
 			// Increment the occurrences of this IP address
-			if (countCLEIPs->Online() >= CLE_Status::Never && (cle == nullptr || cle != countCLEIPs))
+			if (countCLEIPs->Online() >= CLE_Status::Never && countCLEIPs->Online() != CLE_Status::OfflineBazaar && (cle == nullptr || cle != countCLEIPs))
 				IPInstances++;
 		}
 		iterator.Advance();
@@ -344,18 +354,13 @@ void ClientList::CLEAdd(uint32 iLSID, const char* iLoginName, const char* iForum
 	char	paccountname[32] = { 0 };
 	int16	padmin = 0;
 	bool pmule = false;
-	bool wasAccountActive = ActiveConnectionKickStale(iLSID);
 	
-	if (wasAccountActive || GetClientCount() >= RuleI(Quarm, PlayerPopulationCap))
+	if (GetClientCount() >= RuleI(Quarm, PlayerPopulationCap))
 	{
 		uint32 paccountid = database.GetAccountIDFromLSID(iLSID, paccountname, &padmin, 0, &pmule);
 
 		if(padmin == 0)
 			return;
-	}
-
-	if (iForumName && iForumName[0] != '\0') {
-		database.SetForumName(iLSID, iForumName);
 	}
 
 	auto tmp = new ClientListEntry(GetNextCLEID(), iLSID, iLoginName, iForumName, iLoginKey, iWorldAdmin, ip, local, version, 0);
@@ -366,14 +371,19 @@ void ClientList::CLCheckStale() {
 	LinkedListIterator<ClientListEntry*> iterator(clientlist);
 
 	cached_gm_count = 0;
+	cached_trader_count = 0;
 
 	iterator.Reset();
 	while(iterator.MoreElements()) {
 
 		bool should_remove_playercount = iterator.GetData()->Admin() == 0;
+		bool should_remove_baz_offline_player = iterator.GetData()->Online() == OfflineBazaar;
 
 		if (!should_remove_playercount)
 			cached_gm_count++;
+
+		if (should_remove_baz_offline_player)
+			cached_trader_count++;
 
 		if (iterator.GetData()->CheckStale()) {
 
@@ -405,7 +415,7 @@ void ClientList::ClientUpdate(ZoneServer* zoneserver, ServerClientList_Struct* s
 			else if (scl->remove == 1)
 				cle->LeavingZone(zoneserver, CLE_Status::Zoning);
 			else
-				cle->Update(zoneserver, scl);
+				cle->Update(zoneserver, scl, scl->Trader ? CLE_Status::OfflineBazaar : CLE_Status::InZone);
 			return;
 		}
 		iterator.Advance();
@@ -415,7 +425,7 @@ void ClientList::ClientUpdate(ZoneServer* zoneserver, ServerClientList_Struct* s
 	else if (scl->remove == 1)
 		cle = new ClientListEntry(GetNextCLEID(), zoneserver, scl, CLE_Status::Zoning);
 	else
-		cle = new ClientListEntry(GetNextCLEID(), zoneserver, scl, CLE_Status::InZone);
+		cle = new ClientListEntry(GetNextCLEID(), zoneserver, scl, scl->Trader ? CLE_Status::OfflineBazaar : CLE_Status::InZone);
 	clientlist.Insert(cle);
 	zoneserver->ChangeWID(scl->charid, cle->GetID());
 }
@@ -1322,7 +1332,7 @@ bool ClientList::IsAccountInGame(uint32 iLSID) {
 	LinkedListIterator<ClientListEntry*> iterator(clientlist);
 
 	while (iterator.MoreElements()) {
-		if (iterator.GetData()->LSID() == iLSID && iterator.GetData()->Online() == CLE_Status::InZone) {
+		if (iterator.GetData()->LSID() == iLSID && (iterator.GetData()->Online() == CLE_Status::InZone || iterator.GetData()->Online() == CLE_Status::OfflineBazaar)) {
 			return true;
 		}
 		iterator.Advance();
@@ -1332,7 +1342,10 @@ bool ClientList::IsAccountInGame(uint32 iLSID) {
 }
 
 int ClientList::GetClientCount() {
-	return(cached_gm_count > clientlist.Count() ? cached_gm_count : clientlist.Count() - cached_gm_count);
+
+	uint32 cached_gm_trader_count = cached_gm_count + cached_trader_count;
+
+	return(cached_gm_trader_count > clientlist.Count() ? cached_gm_trader_count : clientlist.Count() - cached_gm_trader_count);
 }
 
 void ClientList::GetClients(const char *zone_name, std::vector<ClientListEntry *> &res) {
