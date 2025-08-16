@@ -956,6 +956,8 @@ void Client::BecomeOfflineTrader() {
 	client_ld_timer.Disable();
 	kick_timer.Disable();
 	BuffFadeByEffect(SE_Levitate);
+	SetMoving(false);
+	animation = 0;
 
 	// Notify other clients we are now in trader mode
 	auto outapp = new EQApplicationPacket(OP_BecomeTrader, sizeof(BecomeTrader_Struct));
