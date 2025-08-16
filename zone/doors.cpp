@@ -85,6 +85,7 @@ Doors::Doors(const DoorsRepository::Doors &door) :
 	instance_only       = door.instance_only;
 	client_version_mask = door.client_version_mask;
 	guild_zone_door = door.guild_zone_door;
+	pvp_zone_door = door.pvp_zone_door;
 
 	SetOpenState(false);
 
@@ -128,7 +129,9 @@ Doors::Doors(const char *model, const glm::vec4& position, uint8 opentype, uint1
 	is_lift		= 0;
 	close_time	= 0;
 	can_open		= 0;
-	guild_zone_door = 0;
+	guild_zone_door = false;
+	pvp_zone_door = false;
+	pvp_max_level = 255;
 	client_version_mask = 4294967295u;
 
 	SetOpenState(false);
@@ -363,9 +366,21 @@ void Doors::HandleClick(Client* sender, uint8 trigger, bool floor_port)
 			return;
 		}
 
-		if (sender->GetPVP() != 0 && zoneguildid != GUILD_NONE || zoneguildid != GUILD_NONE && strncmp(destination_zone_name, "charasis", strlen("charasis")) == 0 || zoneguildid != GUILD_NONE && strncmp(destination_zone_name, "mischiefplane", strlen("mischiefplane")) == 0)
+		if (pvp_zone_door == 1 && sender && (uint32)(sender->GetLevel2()) > pvp_max_level)
+		{
+			sender->Message(Chat::Red, "You are unable to enter a PVP Instance because your level is above the maximum allowed level of %i.", pvp_max_level);
+			return;
+		}
+
+		if (sender->GetPVP() != 0 && zoneguildid != GUILD_NONE || zoneguildid != GUILD_NONE && pvp_zone_door == 1)
 		{
 			zoneguildid = 1;
+		}
+
+		if (pvp_zone_door == 1 && zoneguildid != 1)
+		{
+			sender->Message(Chat::Red, "You are unable to enter a PVP Instance at this time.");
+			return;
 		}
 
 		if (zoneguildid == 1)

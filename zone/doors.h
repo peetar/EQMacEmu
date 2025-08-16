@@ -105,5 +105,7 @@ private:
 	uint32	   client_version_mask;
 	bool	   teleport;
 	bool	guild_zone_door;
+	bool	pvp_zone_door;
+	uint32	pvp_max_level;
 };
 #endif
