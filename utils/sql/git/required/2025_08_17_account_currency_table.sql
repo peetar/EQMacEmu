@@ -16,4 +16,7 @@ SUM(character_currency.silver_bank) as silver_amount,
 SUM(character_currency.silver_bank) as copper_amount
 FROM 
     character_currency, character_data, account
-WHERE account.id = character_data.account_id AND character_currency.id = character_data.id and character_data.is_deleted = 0 and character_data.e_solo_only = 0 and character_data.e_self_found = 0 GROUP BY account.id
+WHERE account.id = character_data.account_id AND character_currency.id = character_data.id and character_data.e_solo_only = 0 and character_data.e_self_found = 0 GROUP BY account.id;
+
+UPDATE character_currency, character_data SET character_currency.platinum_bank = 0, character_currency.gold_bank = 0, character_currency.silver_bank = 0, character_currency.copper_bank = 0
+WHERE character_currency.id = character_data.id and character_data.e_solo_only = 0 and character_data.e_self_found = 0
