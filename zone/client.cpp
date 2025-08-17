@@ -314,6 +314,7 @@ m_AutoAttackTargetLocation(0.0f, 0.0f, 0.0f)
 	initial_respawn_selection = 0;
 
 	interrogateinv_flag = false;
+	loaded_as_solo_or_self_found = false;
 
 	has_zomm = false;
 	client_position_update = false;
@@ -905,8 +906,7 @@ bool Client::Save(uint8 iCommitNow) {
 
 	m_pp.mana = cur_mana;
 
-	/* Save Character Currency */
-	database.SaveCharacterCurrency(CharacterID(), &m_pp);
+	SaveCurrency();
 
 	// save character binds
 	// this may not need to be called in Save() but it's here for now

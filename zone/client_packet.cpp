@@ -1291,8 +1291,16 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 	/* Do not write to the PP prior to this otherwise it will just be overwritten when it's loaded from the DB */
 	loaditems = database.GetInventory(acct_id, cid, &m_inv); /* Load Character Inventory */
 	database.LoadCharacterBindPoint(cid, &m_pp); /* Load Character Bind */
-	database.LoadCharacterCurrency(cid, &m_pp); /* Load Character Currency into PP */
 	database.LoadCharacterData(cid, &m_pp, &m_epp); /* Load Character Data from DB into PP as well as E_PP */
+
+	if (m_epp.solo_only || m_epp.self_found)
+		SetLoadedAsSoloOrSelfFound();
+
+	if (IsLoadedAsSoloOrSelfFound())
+		database.LoadCharacterCurrency(cid, &m_pp); /* Load Character Currency into PP */
+	else
+		database.LoadAccountCurrency(acct_id, cid, &m_pp);
+
 	database.LoadCharacterSkills(cid, &m_pp); /* Load Character Skills */
 	database.LoadCharacterSpellBook(cid, &m_pp); /* Load Character Spell Book */
 	database.LoadCharacterMemmedSpells(cid, &m_pp);  /* Load Character Memorized Spells */

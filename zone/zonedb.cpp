@@ -1032,6 +1032,55 @@ bool ZoneDatabase::LoadCharacterCurrency(uint32 character_id, PlayerProfile_Stru
 	return true;
 }
 
+bool ZoneDatabase::LoadAccountCurrency(uint32 account_id, uint32 character_id, PlayerProfile_Struct* pp) {
+
+
+	std::string query = StringFormat(
+		"SELECT                  "
+		"platinum,               "
+		"gold,                   "
+		"silver,                 "
+		"copper,                 "
+		"platinum_cursor,        "
+		"gold_cursor,            "
+		"silver_cursor,          "
+		"copper_cursor           "
+		"FROM                    "
+		"character_currency      "
+		"WHERE `id` = %i         ", character_id);
+	auto results = database.QueryDatabase(query);
+	for (auto& row = results.begin(); row != results.end(); ++row) {
+		pp->platinum = atoi(row[0]);
+		pp->gold = atoi(row[1]);
+		pp->silver = atoi(row[2]);
+		pp->copper = atoi(row[3]);
+		pp->platinum_cursor = atoi(row[4]);
+		pp->gold_cursor = atoi(row[5]);
+		pp->silver_cursor = atoi(row[6]);
+		pp->copper_cursor = atoi(row[7]);
+
+	}
+
+	std::string query2 = StringFormat(
+		"SELECT                  "
+		"platinum_bank,          "
+		"gold_bank,              "
+		"silver_bank,            "
+		"copper_bank            "
+		"FROM                    "
+		"account_currency		 "
+		"WHERE `id` = %i         ", account_id);
+	auto results2 = database.QueryDatabase(query2);
+	for (auto& row2 = results2.begin(); row2 != results2.end(); ++row2) {
+		pp->platinum_bank = atoi(row2[0]);
+		pp->gold_bank = atoi(row2[1]);
+		pp->silver_bank = atoi(row2[2]);
+		pp->copper_bank = atoi(row2[3]);
+
+	}
+	return true;
+}
+
 bool ZoneDatabase::LoadCharacterBindPoint(uint32 character_id, PlayerProfile_Struct* pp){
 	std::string query = StringFormat("SELECT `zone_id`, `x`, `y`, `z`, `heading`, `is_home` FROM `character_bind` WHERE `id` = %u LIMIT 2", character_id);
 	auto results = database.QueryDatabase(query); int i = 0;
@@ -1372,6 +1421,54 @@ bool ZoneDatabase::SaveCharacterCurrency(uint32 character_id, PlayerProfile_Stru
 		pp->silver_cursor,
 		pp->copper_cursor);
 	auto results = database.QueryDatabase(query);
+	Log(Logs::General, Logs::Character, "Saving Currency for character ID: %i, done", character_id);
+	return true;
+}
+
+bool ZoneDatabase::SaveAccountCurrency(uint32 account_id, uint32 character_id, PlayerProfile_Struct* pp) {
+	if (pp->copper < 0) { pp->copper = 0; }
+	if (pp->silver < 0) { pp->silver = 0; }
+	if (pp->gold < 0) { pp->gold = 0; }
+	if (pp->platinum < 0) { pp->platinum = 0; }
+	if (pp->copper_bank < 0) { pp->copper_bank = 0; }
+	if (pp->silver_bank < 0) { pp->silver_bank = 0; }
+	if (pp->gold_bank < 0) { pp->gold_bank = 0; }
+	if (pp->platinum_bank < 0) { pp->platinum_bank = 0; }
+	if (pp->platinum_cursor < 0) { pp->platinum_cursor = 0; }
+	if (pp->gold_cursor < 0) { pp->gold_cursor = 0; }
+	if (pp->silver_cursor < 0) { pp->silver_cursor = 0; }
+	if (pp->copper_cursor < 0) { pp->copper_cursor = 0; }
+	std::string query = StringFormat(
+		"REPLACE INTO `character_currency` (id, platinum, gold, silver, copper,"
+		"platinum_bank, gold_bank, silver_bank, copper_bank,"
+		"platinum_cursor, gold_cursor, silver_cursor, copper_cursor)"
+		"VALUES (%u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u)",
+		character_id,
+		pp->platinum,
+		pp->gold,
+		pp->silver,
+		pp->copper,
+		0,
+		0,
+		0,
+		0,
+		pp->platinum_cursor,
+		pp->gold_cursor,
+		pp->silver_cursor,
+		pp->copper_cursor);
+	auto results = database.QueryDatabase(query);
+
+	std::string query2 = StringFormat(
+		"REPLACE INTO `account_currency` (id, "
+		"platinum_bank, gold_bank, silver_bank, copper_bank) "
+		"VALUES (%u, %u, %u, %u, %u)",
+		account_id,
+		pp->platinum_bank,
+		pp->gold_bank,
+		pp->silver_bank,
+		pp->copper_bank);
+	auto results2 = database.QueryDatabase(query2);
+
 	Log(Logs::General, Logs::Character, "Saving Currency for character ID: %i, done", character_id);
 	return true;
 }

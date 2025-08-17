@@ -406,6 +406,10 @@ public:
 
 	bool LoadCharacterReimbursements(std::list<TempMerchantList>& item_reimbursements, uint32 character_id);
 
+	/* Account Inventory Stuff*/
+	bool LoadAccountCurrency(uint32 account_id, uint32 character_id, PlayerProfile_Struct* pp);
+	bool SaveAccountCurrency(uint32 account_id, uint32 character_id, PlayerProfile_Struct* pp);
+
 	/* Corpses  */
 	bool		DeleteItemOffCharacterCorpse(uint32 db_id, uint32 equip_slot, uint32 item_id);
 	uint32		GetCharacterCorpseItemCount(uint32 corpse_id);
