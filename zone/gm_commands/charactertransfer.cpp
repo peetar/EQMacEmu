@@ -32,7 +32,14 @@ void command_charactertransfer(Client* c, const Seperator* sep) {
 			c->Message(Chat::White, "You cannot transfer characters to an account your forum account does not own.");
 			return;
 		}
-		uint32 target_account_id = database.GetAccountIDByName(sep->arg[1]);
+
+		std::string account_to_check = sep->arg[1];
+
+		if (replaceSpaces) {
+			std::replace(account_to_check.begin(), account_to_check.end(), '_', ' ');
+		}
+
+		uint32 target_account_id = database.GetAccountIDByName(account_to_check.c_str());
 		char target_account_name[30];
 
 		database.GetAccountFromID(target_account_id, target_account_name, nullptr, nullptr);
