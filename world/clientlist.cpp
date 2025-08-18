@@ -116,7 +116,7 @@ bool ClientList::ActiveConnectionKickStale(uint32 account_id) {
 					ServerKickPlayerAccount_Struct* skp = (ServerKickPlayerAccount_Struct*)pack->pBuffer;
 					skp->AccountID = account_id;
 					zoneserver_list.SendPacket(pack);
-					safe_delete(skp);
+					safe_delete(pack);
 				}
 
 				found_active = true;
