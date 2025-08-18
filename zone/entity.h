@@ -225,6 +225,7 @@ public:
 	void	RemoveArea(int id);
 	void	ClearAreas();
 	void	ReloadMerchants();
+	void	OnAFKCheckStateChanged();
 	void	ProcessProximitySay(const char *Message, Client *c, uint8 language = 0);
 	Doors *FindDoor(uint8 door_id);
 	Doors	*FindNearestDoor(Client* c);

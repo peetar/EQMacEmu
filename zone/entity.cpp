@@ -5229,3 +5229,14 @@ void EntityList::ReloadMerchants() {
 		}
 	}
 }
+
+void EntityList::OnAFKCheckStateChanged() {
+	auto it = client_list.begin();
+	while (it != client_list.end()) {
+		if (it->second && it->second->GetID() > 0) {
+
+			it->second->OnAFKTimerChanged();
+		}
+		++it;
+	}
+}

@@ -1299,6 +1299,8 @@ public:
 	PlayerEvent::PlayerEvent GetPlayerEvent();
 	void RecordKilledNPCEvent(NPC *n);
 
+	void OnAFKTimerChanged();
+
 protected:
 	friend class Mob;
 	void CalcItemBonuses(StatBonuses* newbon);

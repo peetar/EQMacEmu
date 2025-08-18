@@ -8633,3 +8633,21 @@ void Client::SetAccountName(const char* target_account_name)
 	memset(account_name, 0, sizeof(account_name));
 	strn0cpy(account_name, target_account_name, sizeof(account_name));
 }
+
+void Client::OnAFKTimerChanged()
+{
+	if (Admin() == AccountStatus::Player && zone && !IsOfflineTrader())
+	{
+		uint32 zone_kick_timer = zone->GetZoneKickTimer();
+
+		if (zone_kick_timer > 0)
+		{
+			Message(Chat::Red, "[AFK Kick] This zone has anti-AFK enforcement enabled. You will be kicked in %s.", Strings::SecondsToTime(zone->GetZoneKickTimer()).c_str());
+			kick_timer.Start(zone_kick_timer * 1000);
+		}
+		else
+		{
+			kick_timer.Disable();
+		}
+	}
+}

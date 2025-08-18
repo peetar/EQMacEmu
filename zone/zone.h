@@ -203,6 +203,8 @@ public:
 
 	ZoneBanishPoint& GetZoneBanishPoint() { return zone_banish_point; }
 
+	uint32 GetZoneKickTimer() { return zone_kick_timer; }
+
 	bool	Process();
 	void	Despawn(uint32 spawngroupID);
 	bool	ResetEngageNotificationTargets(uint32 in_respawn_timer, bool update_respawn_in_db = false);
@@ -334,6 +336,7 @@ public:
 	void	SetGraveyard(uint32 zoneid, const glm::vec4& graveyardPosition);
 
 	void		LoadZoneBanishPoint(const char* zone);
+	void		LoadZoneKickTimer(const char* zone);
 	void		LoadZoneBlockedSpells();
 	void		ClearBlockedSpells();
 	bool		IsSpellBlocked(uint32 spell_id, const glm::vec3& location);
@@ -496,6 +499,8 @@ private:
 	ZoneSpellsBlocked *blocked_spells;
 
 	ZoneBanishPoint zone_banish_point;
+
+	uint32 zone_kick_timer;
 
 	int		totalAAs;
 	SendAA_Struct **aas;	//array of AA structs

@@ -1061,6 +1061,8 @@ Zone::Zone(uint32 in_zoneid, const char* in_short_name, uint32 in_guildid)
 	memset(&cached_quake_struct, 0, sizeof(ServerEarthquakeImminent_Struct));
 	memset(&zone_banish_point, 0, sizeof(ZoneBanishPoint));
 
+	zone_kick_timer = 0;
+
 	short_name = strcpy(new char[strlen(in_short_name)+1], in_short_name);
 	strlwr(short_name);
 	memset(file_name, 0, sizeof(file_name));
@@ -1291,6 +1293,7 @@ bool Zone::Init(bool is_static) {
 	LoadZoneDoors();
 	LoadZoneBlockedSpells();
 	LoadZoneBanishPoint(zone->GetShortName());
+	LoadZoneKickTimer(zone->GetShortName());
 	LoadNPCEmotes(&npc_emote_list);
 	LoadAlternateAdvancement();
 	GetMerchantDataForZoneLoad();
@@ -1378,9 +1381,14 @@ void Zone::ReloadStaticData() {
 		LoadZoneCFG(GetFileName());
 	} // if that fails, try the file name, then load defaults
 
+	LoadZoneBanishPoint(zone->GetShortName());
+	LoadZoneKickTimer(zone->GetShortName());
+
 	content_service.SetExpansionContext()->ReloadContentFlags();
 
 	ReloadLootTables();
+
+	entity_list.OnAFKCheckStateChanged();
 
 	LogInfo("Zone Static Data Reloaded.");
 }
@@ -2414,6 +2422,10 @@ void Zone::SetGraveyard(uint32 zoneid, const glm::vec4& graveyardPosition) {
 
 void Zone::LoadZoneBanishPoint(const char* zone) {
 	database.GetZoneBanishPoint(zone_banish_point, zone);
+}
+
+void Zone::LoadZoneKickTimer(const char* zone) {
+	zone_kick_timer = database.GetZoneKickTimer(zone);
 }
 
 void Zone::LoadZoneBlockedSpells()

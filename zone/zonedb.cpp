@@ -4642,3 +4642,22 @@ bool ZoneDatabase::GetZoneBanishPoint(ZoneBanishPoint& into_zbp, const char* des
 
 	return true;
 }
+
+uint32 ZoneDatabase::GetZoneKickTimer(const char* dest_zone) {
+	std::string query = StringFormat("SELECT afk_kick_timer "
+		"FROM zone WHERE short_name = '%s' "
+		"LIMIT 1",
+		dest_zone);
+
+	uint32 kick_timer = 0;
+
+	auto results = QueryDatabase(query);
+	if (!results.Success() || results.RowCount() != 1) {
+		return kick_timer;
+	}
+
+	auto row = results.begin();
+	kick_timer = atoi(row[0]);
+
+	return kick_timer;
+}

@@ -477,6 +477,8 @@ public:
 	int		getZoneShutDownDelay(uint32 zoneID);
 	bool	GetZoneBanishPoint(ZoneBanishPoint& into_zbp, const char* dest_zone);
 
+	uint32 GetZoneKickTimer(const char* dest_zone);
+
 	/* Spawns and Spawn Points  */
 	bool		LoadSpawnGroups(const char* zone_name, SpawnGroupList* spawn_group_list);
 	bool		LoadSpawnGroupsByID(int spawngroupid, SpawnGroupList* spawn_group_list);
