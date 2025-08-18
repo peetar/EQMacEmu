@@ -380,7 +380,7 @@ void Doors::HandleClick(Client* sender, uint8 trigger, bool floor_port)
 
 		if (pvp_zone_door == 1 && zoneguildid != 1)
 		{
-			sender->Message(Chat::Red, "You are unable to enter a PVP Instance at this time.");
+			sender->Message(Chat::Red, "You are unable to enter a PVP Instance at this time. Please use the chat command #togglepvp .");
 			return;
 		}
 
