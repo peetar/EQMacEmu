@@ -86,6 +86,7 @@ Doors::Doors(const DoorsRepository::Doors &door) :
 	client_version_mask = door.client_version_mask;
 	guild_zone_door = door.guild_zone_door;
 	pvp_zone_door = door.pvp_zone_door;
+	pvp_max_level = door.pvp_max_level;
 
 	SetOpenState(false);
 
