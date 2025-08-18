@@ -80,6 +80,7 @@ private:
 	uint32	zoneGuildID;
 	bool	is_player_zoning;
 	Timer	autobootup_timeout;
+	Timer	client_inactive_timeout;
 	uint32	zone_waiting_for_bootup;
 	bool	enter_world_triggered;
 

@@ -93,6 +93,7 @@ Client::Client(EQStreamInterface* ieqs)
 		ip = 0;
 		port = 0;
 	}
+	client_inactive_timeout.Disable();
 	autobootup_timeout.Disable();
 	connect.Disable();
 	seen_character_select = false;
@@ -186,6 +187,15 @@ void Client::SendCharInfo() {
 	if (RuleB(Quarm, DeleteHCCharactersAfterDeath))
 	{
 		database.ClearHardcoreCharacters(GetAccountID());
+	}
+
+	if (RuleB(Quarm, EnableWorldClientInactiveTimeout))
+	{
+		client_inactive_timeout.Start(RuleI(Quarm, WorldClientInactiveTimeoutMS));
+	}
+	else
+	{
+		client_inactive_timeout.Disable();
 	}
 	
 	seen_character_select = true;
@@ -947,6 +957,30 @@ bool Client::Process() {
 	if (autobootup_timeout.Check()) {
 		LogInfo( "Zone bootup timer expired, bootup failed or too slow.");
 		TellClientZoneUnavailable();
+	}
+
+	if (RuleB(Quarm, EnableWorldClientInactiveTimeout))
+	{
+		if (client_inactive_timeout.Check())
+		{
+			LogInfo("Client inactive timeout expired, closing connection.");
+			if (eqs)
+				eqs->Close();
+
+			if (WorldConfig::get()->UpdateStats) {
+				auto pack = new ServerPacket;
+				pack->opcode = ServerOP_LSPlayerLeftWorld;
+				pack->size = sizeof(ServerLSPlayerLeftWorld_Struct);
+				pack->pBuffer = new uchar[pack->size];
+				memset(pack->pBuffer, 0, pack->size);
+				ServerLSPlayerLeftWorld_Struct* logout = (ServerLSPlayerLeftWorld_Struct*)pack->pBuffer;
+				strcpy(logout->key, GetLSKey());
+				logout->lsaccount_id = GetLSID();
+				loginserverlist.SendPacket(pack);
+				safe_delete(pack);
+			}
+			return false;
+		}
 	}
 
 	if(connect.Check()){
