@@ -315,7 +315,7 @@ m_AutoAttackTargetLocation(0.0f, 0.0f, 0.0f)
 
 	interrogateinv_flag = false;
 	loaded_as_solo_or_self_found = false;
-
+	original_account_id = 0;
 	has_zomm = false;
 	client_position_update = false;
 	ignore_zone_count = false;

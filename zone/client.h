@@ -377,7 +377,7 @@ public:
 		if (IsLoadedAsSoloOrSelfFound())
 			return database.SaveCharacterCurrency(CharacterID(), &m_pp);
 		else
-			return database.SaveAccountCurrency(AccountID(), CharacterID(), &m_pp);
+			return database.SaveAccountCurrency(original_account_id, CharacterID(), &m_pp);
 	}
 	bool SaveAA();
 	bool SaveCharacterMageloStats();
@@ -750,6 +750,7 @@ public:
 	inline uint32 GetWID() const { return WID; }
 	inline void SetWID(uint32 iWID) { WID = iWID; }
 	inline uint32 AccountID() const { return account_id; }
+	inline uint32 OriginalAccountID() const { return original_account_id; }
 
 	inline const char* AccountName() const { return account_name; }
 	inline const char* ForumName() const { return forum_name; }
@@ -1594,6 +1595,8 @@ private:
 	uint8 initial_respawn_selection;
 
 	bool interrogateinv_flag; // used to minimize log spamming by players
+
+	uint32 original_account_id;
 
 	bool loaded_as_solo_or_self_found; // used to minimize log spamming by players
 

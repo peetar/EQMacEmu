@@ -1286,6 +1286,8 @@ void Client::Handle_Connect_OP_ZoneEntry(const EQApplicationPacket *app)
 		firstlogon = atoi(row[0]);
 	}
 
+	original_account_id = acct_id;
+
 	/* Do not write to the PP prior to this otherwise it will just be overwritten when it's loaded from the DB */
 	loaditems = database.GetInventory(acct_id, cid, &m_inv); /* Load Character Inventory */
 	database.LoadCharacterBindPoint(cid, &m_pp); /* Load Character Bind */
