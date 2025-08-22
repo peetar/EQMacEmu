@@ -933,8 +933,6 @@ uint32 Database::GetAccountIDByChar(uint32 char_id) {
 }
 
 uint32 Database::GetAccountIDByName(std::string account_name, int16* status, uint32* lsid) {
-	if (!isAlphaNumeric(account_name.c_str()))
-		return 0;
 
 	auto query = fmt::format(
 		"SELECT `id`, `status`, `lsaccount_id` FROM `account` WHERE `name` = '{}' LIMIT 1",
