@@ -414,6 +414,12 @@ void Doors::HandleClick(Client* sender, uint8 trigger, bool floor_port)
 			return;
 		}
 
+		if (RuleB(Quarm, EnforceLatestDllToEnterSpecialInstances) && zoneguildid == 1 && sender->GetClientLibraryVersion() < RuleI(Quarm, WarnDllVersionBelow))
+		{
+			sender->Message(Chat::Red, "You must be running the latest version of the Quarm Server Patch to enter this zone.");
+			return;
+		}
+
 		if ((floor_port || strncmp(destination_zone_name,zone_name,strlen(zone_name)) == 0) && !keyneeded)
 		{
 			if(!keepoffkeyring)
